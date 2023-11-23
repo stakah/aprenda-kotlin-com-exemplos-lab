@@ -2,15 +2,26 @@
 
 enum class Nivel { BASICO, INTERMEDIARIO, DIFICIL }
 
-data class Usuario(var nome: String, val id: Int)
+class Usuario protected constructor(var nome: String, var id: Int) {
+    companion object {
+        var _id : Int = 0
+    }
+    constructor(nome:String) : this (nome, ++_id)
+}
 
 data class ConteudoEducacional(var nome: String, val duracao: Int = 60)
+
+class AlunoJaMatriculadoException(message: String) : Exception(message)
 
 data class Formacao(val nome: String, var conteudos: List<ConteudoEducacional>) {
 
     val inscritos = mutableListOf<Usuario>()
     
     fun matricular(usuario: Usuario) {
+        if (inscritos.map{it.nome.uppercase()}.contains(usuario.nome.uppercase()))
+        {
+        	throw AlunoJaMatriculadoException("Aluno \"${usuario.nome}\" ja matriculado nessa formacao")
+        }
         inscritos.add(usuario)
         //TODO("Utilize o parâmetro $usuario para simular uma matrícula (usar a lista de $inscritos).")
         
@@ -22,7 +33,7 @@ data class Formacao(val nome: String, var conteudos: List<ConteudoEducacional>) 
         println("|----------------------------------------|")
         println("| Conteudo Educacional:                  |")
         println("|----------------------------------------|")
-        println("| Nome                     | Duracao (h) |")
+        println("| Conteudo                 | Duracao (h) |")
         println("|--------------------------|-------------|")
         for (ce in conteudos) {
             println(String.format("| %-24s | %11d |", ce.nome, ce.duracao))
@@ -30,7 +41,7 @@ data class Formacao(val nome: String, var conteudos: List<ConteudoEducacional>) 
         println("|----------------------------------------|")
         println("| Inscritos:                             |")
         println("|----------------------------------------|")
-        println("| Id |Nome                               |")
+        println("| Id | Nome                              |")
         for (aluno in inscritos) {
             println(String.format("| %2d | %-33s |", aluno.id, aluno.nome))
         }
@@ -47,8 +58,10 @@ fun main() {
     )
     
     with (formFull) {
-        matricular(Usuario(nome = "Peter Parker", id=1))
-        matricular(Usuario(nome = "Mary Jane", id=2))
+        listOf("Peter Parker", "Mary Jane", "JJ").forEach{
+            matricular(Usuario(nome=it))
+        }
+        
         prettyPrint()
     }
 
@@ -58,9 +71,10 @@ fun main() {
         )
     )
 	with (formBack) {
-      matricular(Usuario(nome = "Harry Potter", id=3))
-      matricular(Usuario(nome = "Ermione Granger", id=4))
-      prettyPrint()
+        listOf("Harry Potter", "Ermione Granger").forEach{
+	        matricular(Usuario(it))
+        }
+        prettyPrint()
     }
     //TODO("Analise as classes modeladas para este domínio de aplicação e pense em formas de evoluí-las.")
     //TODO("Simule alguns cenários de teste. Para isso, crie alguns objetos usando as classes em questão.")
